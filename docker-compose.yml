@@ -1,0 +1,44 @@
+version: '3.1'
+
+services:
+  mysql:  
+    image: mysql:5.7
+    container_name: mysql-transport
+    hostname: mysql-transport-host
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
+      - MYSQL_DATABASE=transportdb
+      - MYSQL_USER=transport-user
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+    restart: unless-stopped
+    ports:
+      - 3302:3306
+    volumes:
+      - mysql-data:/var/lib/mysql
+    secrets:
+      - db_root_password
+      - db_password
+
+  app:
+    build: .
+    container_name: transport-service-kontena
+    hostname: transport-service-host
+    restart: unless-stopped
+    volumes:
+      - ./src:/var/www/html
+    ports:
+      - "8062:80"
+    links:
+      - mysql
+
+secrets:
+  db_root_password:
+    file: db_root_password.txt
+  db_password:
+    file: db_password.txt
+
+volumes:
+  mysql-data:
+
+networks:
+  default:
